@@ -127,86 +127,63 @@
     }
 
     // Signup validation
-    function validateSignup() {
+    async function validateSignup() {
         let email = document.getElementById("signupEmail").value.trim();
         let pass = document.getElementById("signupPassword").value.trim();
         let repass = document.getElementById("signupRePassword").value.trim();
 
-        let storedEmail = localStorage.getItem("userEmail");
-
-        document.getElementById("alreadySignupError").textContent = "";
         document.getElementById("signupEmailError").textContent = "";
         document.getElementById("signupPasswordError").textContent = "";
         document.getElementById("signupRePasswordError").textContent = "";
 
-        let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        let passPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/; // Updated: min 8 chars
-
-        let valid = true;
-
-        // Check if already signed up
-        if (storedEmail && storedEmail === email) {
-            document.getElementById("alreadySignupError").textContent = "You have already signed up with this email.";
+        if (pass !== repass) {
+            document.getElementById("signupRePasswordError").textContent = "Passwords do not match.";
             return;
         }
 
-        if (!emailPattern.test(email)) {
-            document.getElementById("signupEmailError").textContent = "Enter a valid email.";
-            valid = false;
-        }
-        if (!passPattern.test(pass)) {
-            document.getElementById("signupPasswordError").textContent = "Password must be at least 8 characters, include letters, numbers & special chars.";
-            valid = false;
-        }
-        if (pass !== repass) {
-            document.getElementById("signupRePasswordError").textContent = "Passwords do not match.";
-            valid = false;
-        }
-
-        if (valid) {
-            localStorage.setItem("userEmail", email);
-            localStorage.setItem("userPass", pass);
-            alert("Signup successful! You can now login.");
-            showLogin();
+        try {
+            const res = await fetch("http://localhost:8081/signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password: pass })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert("Signup successful! You can now login.");
+                showLogin();
+            } else {
+                document.getElementById("signupEmailError").textContent = data.error || "Signup failed.";
+            }
+        } catch (err) {
+            alert("Server error. Make sure the backend is running.");
         }
     }
 
     // Login validation
-    function validateLogin() {
+    async function validateLogin() {
         let email = document.getElementById("loginEmail").value.trim();
         let pass = document.getElementById("loginPassword").value.trim();
 
-        let storedEmail = localStorage.getItem("userEmail");
-        let storedPass = localStorage.getItem("userPass");
-
-        document.getElementById("signupFirstError").textContent = "";
         document.getElementById("loginEmailError").textContent = "";
         document.getElementById("loginPasswordError").textContent = "";
 
-        let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        let passPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/; // Updated: min 8 chars
-
-        if (!storedEmail || !storedPass) {
-            document.getElementById("signupFirstError").textContent = "Please sign up before login.";
-            return;
+        try {
+            const res = await fetch("http://localhost:8081/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password: pass })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                localStorage.setItem("userEmail", data.email);
+                alert("Login successful!");
+                window.location.href = "index.html";
+            } else {
+                document.getElementById("loginPasswordError").textContent = data.error || "Login failed.";
+            }
+        } catch (err) {
+            alert("Server error. Make sure the backend is running.");
         }
-
-        if (!emailPattern.test(email)) {
-            document.getElementById("loginEmailError").textContent = "Enter a valid email.";
-            return;
-        }
-
-        if (!passPattern.test(pass)) {
-            document.getElementById("loginPasswordError").textContent = "Password must be at least 8 characters, include letters, numbers & special chars.";
-            return;
-        }
-
-        if (email === storedEmail && pass === storedPass) {
-    alert("Login successful!");
-    window.location.href = "index.html"; // Redirect to estimator page
-} else {
-    document.getElementById("loginPasswordError").textContent = "Incorrect email or password.";
-}
     }
 </script>
 </body>

@@ -9,6 +9,10 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class CostCalculatorServer {
 
@@ -22,11 +26,106 @@ public class CostCalculatorServer {
     public static void main(String[] args) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(8081), 0);
 
-        // CORS-friendly endpoint
+        // Endpoints
         server.createContext("/calculate", CostCalculatorServer::handleCalculate);
+        server.createContext("/signup",    CostCalculatorServer::handleSignup);
+        server.createContext("/login",     CostCalculatorServer::handleLogin);
 
         System.out.println("Server started at http://localhost:8081");
+        server.setExecutor(null);
         server.start();
+    }
+
+    private static void handleSignup(HttpExchange ex) throws IOException {
+        // CORS
+        Headers h = ex.getResponseHeaders();
+        h.add("Access-Control-Allow-Origin", "*");
+        h.add("Access-Control-Allow-Methods", "POST, OPTIONS");
+        h.add("Access-Control-Allow-Headers", "Content-Type");
+
+        if ("OPTIONS".equalsIgnoreCase(ex.getRequestMethod())) {
+            ex.sendResponseHeaders(204, -1);
+            return;
+        }
+
+        if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
+            ex.sendResponseHeaders(405, -1);
+            return;
+        }
+
+        try {
+            InputStream in = ex.getRequestBody();
+            String body = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            String email = getString(body, "email", "");
+            String password = getString(body, "password", "");
+
+            if (email.isEmpty() || password.isEmpty()) {
+                String err = "{\"error\":\"Email and password required\"}";
+                byte[] out = err.getBytes(StandardCharsets.UTF_8);
+                h.add("Content-Type", "application/json");
+                ex.sendResponseHeaders(400, out.length);
+                try (OutputStream os = ex.getResponseBody()) { os.write(out); }
+                return;
+            }
+
+            String json = "{\"success\":true,\"message\":\"Signup successful\"}";
+            byte[] out = json.getBytes(StandardCharsets.UTF_8);
+            h.add("Content-Type", "application/json");
+            ex.sendResponseHeaders(200, out.length);
+            try (OutputStream os = ex.getResponseBody()) { os.write(out); }
+        } catch (Exception e) {
+            String err = "{\"error\":\"" + e.getMessage().replace("\"","'") + "\"}";
+            byte[] out = err.getBytes(StandardCharsets.UTF_8);
+            h.add("Content-Type", "application/json");
+            ex.sendResponseHeaders(400, out.length);
+            try (OutputStream os = ex.getResponseBody()) { os.write(out); }
+        }
+    }
+
+    private static void handleLogin(HttpExchange ex) throws IOException {
+        // CORS
+        Headers h = ex.getResponseHeaders();
+        h.add("Access-Control-Allow-Origin", "*");
+        h.add("Access-Control-Allow-Methods", "POST, OPTIONS");
+        h.add("Access-Control-Allow-Headers", "Content-Type");
+
+        if ("OPTIONS".equalsIgnoreCase(ex.getRequestMethod())) {
+            ex.sendResponseHeaders(204, -1);
+            return;
+        }
+
+        if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
+            ex.sendResponseHeaders(405, -1);
+            return;
+        }
+
+        try {
+            InputStream in = ex.getRequestBody();
+            String body = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            String email = getString(body, "email", "");
+            String password = getString(body, "password", "");
+
+            if (email.isEmpty() || password.isEmpty()) {
+                String err = "{\"error\":\"Email and password required\"}";
+                byte[] out = err.getBytes(StandardCharsets.UTF_8);
+                h.add("Content-Type", "application/json");
+                ex.sendResponseHeaders(400, out.length);
+                try (OutputStream os = ex.getResponseBody()) { os.write(out); }
+                return;
+            }
+
+            String json = "{\"success\":true,\"email\":\"" + email + "\",\"message\":\"Login successful\"}";
+            byte[] out = json.getBytes(StandardCharsets.UTF_8);
+            h.add("Content-Type", "application/json");
+            ex.sendResponseHeaders(200, out.length);
+            try (OutputStream os = ex.getResponseBody()) { os.write(out); }
+        } catch (Exception e) {
+            String err = "{\"error\":\"" + e.getMessage().replace("\"","'") + "\"}";
+            byte[] out = err.getBytes(StandardCharsets.UTF_8);
+            h.add("Content-Type", "application/json");
+            ex.sendResponseHeaders(400, out.length);
+            try (OutputStream os = ex.getResponseBody()) { os.write(out); }
+        }
     }
 
     private static void handleCalculate(HttpExchange ex) throws IOException {
@@ -119,6 +218,10 @@ public class CostCalculatorServer {
     private static double getDouble(String json, String key, double defVal) {
         Matcher m = Pattern.compile("\"" + key + "\"\\s*:\\s*(-?\\d+(?:\\.\\d+)?)").matcher(json);
         return m.find() ? Double.parseDouble(m.group(1)) : defVal;
+    }
+    private static String getString(String json, String key, String defVal) {
+        Matcher m = Pattern.compile("\"" + key + "\"\\s*:\\s*\"([^\"]*?)\"").matcher(json);
+        return m.find() ? m.group(1) : defVal;
     }
     private static boolean getBoolean(String json, String key) {
         Matcher m = Pattern.compile("\"" + key + "\"\\s*:\\s*(true|false)").matcher(json);

@@ -126,12 +126,13 @@ form.addEventListener("submit", async (e) => {
   const materials = Array.from(document.querySelectorAll(".material-btn.selected"))
     .map(b => b.dataset.name || b.innerText.trim());
 
+  const userEmail = localStorage.getItem("userEmail") || "";
   try {
-    const res = await fetch("/api/calculate", {
+    const res = await fetch("http://localhost:8081/calculate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        landSize, numFloors, bedrooms, kitchens, bathrooms, elevation, materials
+        landSize, numFloors, bedrooms, kitchens, bathrooms, elevation, materials, userEmail
       })
     });
 
