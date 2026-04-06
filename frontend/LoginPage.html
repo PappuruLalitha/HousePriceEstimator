@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>House Portal</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-size: cover;
+        background-position: center;
+        transition: background-image 1s ease-in-out;
+    }
+
+    .form-box {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0px 0px 20px rgba(0,0,0,0.2);
+        width: 350px;
+        text-align: center;
+    }
+
+    .form-box h2 {
+        margin-bottom: 20px;
+    }
+
+    input {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+
+    button {
+        background-color: #007BFF;
+        color: white;
+        padding: 10px;
+        border: none;
+        width: 100%;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    .error {
+        color: red;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+
+    a {
+        color: #007BFF;
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    #signupPage { display: none; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div class="form-box" id="loginPage">
+    <h2>House Portal Login</h2>
+    <div id="signupFirstError" class="error"></div>
+    <input type="text" id="loginEmail" placeholder="Enter your Email">
+    <div id="loginEmailError" class="error"></div>
+    <input type="password" id="loginPassword" placeholder="Enter your Password">
+    <div id="loginPasswordError" class="error"></div>
+    <button onclick="validateLogin()">Login</button>
+    <p>Don't have an account? <a href="#" onclick="showSignup()">Sign up</a></p>
+</div>
+
+<!-- SIGNUP PAGE -->
+<div class="form-box" id="signupPage">
+    <h2>Sign Up</h2>
+    <div id="alreadySignupError" class="error"></div>
+    <input type="text" id="signupEmail" placeholder="Enter your Email">
+    <div id="signupEmailError" class="error"></div>
+    <input type="password" id="signupPassword" placeholder="Enter your Password">
+    <div id="signupPasswordError" class="error"></div>
+    <input type="password" id="signupRePassword" placeholder="Re-enter Password">
+    <div id="signupRePasswordError" class="error"></div>
+    <button onclick="validateSignup()">Sign Up</button>
+    <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+</div>
+
+<script>
+    // Background images
+    const backgrounds = [
+        "url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2')",
+        "url('https://images.unsplash.com/photo-1570129477492-45c003edd2be')",
+        "url('https://cdn-2.reimaginehome.ai/dev/media/Exterior-Sample-bdefaaf7-3f9c-415b-8e70-eb448b0d85ea.jpeg')"
+    ];
+    let bgIndex = 0;
+
+    function changeBackground() {
+        document.body.style.backgroundImage = backgrounds[bgIndex];
+        bgIndex = (bgIndex + 1) % backgrounds.length;
+    }
+    changeBackground();
+    setInterval(changeBackground, 5000);
+
+    // Switch to signup
+    function showSignup() {
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("signupPage").style.display = "block";
+    }
+
+    // Switch to login
+    function showLogin() {
+        document.getElementById("signupPage").style.display = "none";
+        document.getElementById("loginPage").style.display = "block";
+    }
+
+    // Signup validation
+    function validateSignup() {
+        let email = document.getElementById("signupEmail").value.trim();
+        let pass = document.getElementById("signupPassword").value.trim();
+        let repass = document.getElementById("signupRePassword").value.trim();
+
+        let storedEmail = localStorage.getItem("userEmail");
+
+        document.getElementById("alreadySignupError").textContent = "";
+        document.getElementById("signupEmailError").textContent = "";
+        document.getElementById("signupPasswordError").textContent = "";
+        document.getElementById("signupRePasswordError").textContent = "";
+
+        let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        let passPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/; // Updated: min 8 chars
+
+        let valid = true;
+
+        // Check if already signed up
+        if (storedEmail && storedEmail === email) {
+            document.getElementById("alreadySignupError").textContent = "You have already signed up with this email.";
+            return;
+        }
+
+        if (!emailPattern.test(email)) {
+            document.getElementById("signupEmailError").textContent = "Enter a valid email.";
+            valid = false;
+        }
+        if (!passPattern.test(pass)) {
+            document.getElementById("signupPasswordError").textContent = "Password must be at least 8 characters, include letters, numbers & special chars.";
+            valid = false;
+        }
+        if (pass !== repass) {
+            document.getElementById("signupRePasswordError").textContent = "Passwords do not match.";
+            valid = false;
+        }
+
+        if (valid) {
+            localStorage.setItem("userEmail", email);
+            localStorage.setItem("userPass", pass);
+            alert("Signup successful! You can now login.");
+            showLogin();
+        }
+    }
+
+    // Login validation
+    function validateLogin() {
+        let email = document.getElementById("loginEmail").value.trim();
+        let pass = document.getElementById("loginPassword").value.trim();
+
+        let storedEmail = localStorage.getItem("userEmail");
+        let storedPass = localStorage.getItem("userPass");
+
+        document.getElementById("signupFirstError").textContent = "";
+        document.getElementById("loginEmailError").textContent = "";
+        document.getElementById("loginPasswordError").textContent = "";
+
+        let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        let passPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/; // Updated: min 8 chars
+
+        if (!storedEmail || !storedPass) {
+            document.getElementById("signupFirstError").textContent = "Please sign up before login.";
+            return;
+        }
+
+        if (!emailPattern.test(email)) {
+            document.getElementById("loginEmailError").textContent = "Enter a valid email.";
+            return;
+        }
+
+        if (!passPattern.test(pass)) {
+            document.getElementById("loginPasswordError").textContent = "Password must be at least 8 characters, include letters, numbers & special chars.";
+            return;
+        }
+
+        if (email === storedEmail && pass === storedPass) {
+    alert("Login successful!");
+    window.location.href = "index.html"; // Redirect to estimator page
+} else {
+    document.getElementById("loginPasswordError").textContent = "Incorrect email or password.";
+}
+    }
+</script>
+</body>
+</html>
