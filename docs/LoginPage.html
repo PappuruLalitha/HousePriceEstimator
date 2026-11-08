@@ -7,77 +7,51 @@
 <title>House Portal Login</title>
 
 <style>
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
     margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    font-family: Arial, sans-serif;
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
-    transition: background-image 1s ease-in-out;
 }
 
 .form-box {
-    background: rgba(255,255,255,0.9);
+    background: rgba(255,255,255,0.92);
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.2);
     width: 90%;
     max-width: 380px;
     text-align: center;
-}
-
-.form-box h2 {
-    margin-bottom: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
 }
 
 input {
     width: 100%;
     padding: 12px;
     margin: 10px 0;
-    border-radius: 5px;
     border: 1px solid #ccc;
+    border-radius: 5px;
 }
 
 button {
-    background-color: #007BFF;
-    color: white;
-    padding: 12px;
-    border: none;
     width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background: #007BFF;
+    color: white;
+    border: none;
     border-radius: 5px;
     cursor: pointer;
-    margin-top: 10px;
     font-size: 16px;
 }
 
-button:hover {
-    background-color: #0056b3;
-}
-
 button:disabled {
-    background-color: #999;
-    cursor: not-allowed;
-}
-
-.error {
-    color: red;
-    font-size: 14px;
-    margin-top: 5px;
-}
-
-.success {
-    color: green;
-    font-size: 14px;
-    margin-top: 5px;
+    background: #999;
 }
 
 a {
@@ -85,111 +59,58 @@ a {
     text-decoration: none;
 }
 
-a:hover {
-    text-decoration: underline;
-}
+.error { color: red; }
+.success { color: green; }
 
-#signupPage {
-    display: none;
-}
+#signupPage { display: none; }
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN PAGE -->
 <div class="form-box" id="loginPage">
-
     <h2>House Portal Login</h2>
-
     <div id="loginMessage"></div>
 
-    <input
-        type="email"
-        id="loginEmail"
-        placeholder="Enter your Email"
-        required
-    >
+    <input type="email" id="loginEmail"
+           placeholder="Enter your Email">
 
-    <div id="loginEmailError" class="error"></div>
+    <input type="password" id="loginPassword"
+           placeholder="Enter your Password">
 
-    <input
-        type="password"
-        id="loginPassword"
-        placeholder="Enter your Password"
-        required
-    >
+    <button id="loginButton" onclick="validateLogin()">Login</button>
 
-    <div id="loginPasswordError" class="error"></div>
-
-    <button id="loginButton" onclick="validateLogin()">
-        Login
-    </button>
-
-    <p>
-        Don't have an account?
-        <a href="#" onclick="showSignup(); return false;">Sign up</a>
+    <p>Don't have an account?
+       <a href="#" onclick="showSignup(); return false;">Sign up</a>
     </p>
-
 </div>
 
-
-<!-- SIGNUP PAGE -->
 <div class="form-box" id="signupPage">
-
     <h2>Create Account</h2>
-
     <div id="signupMessage"></div>
 
-    <input
-        type="email"
-        id="signupEmail"
-        placeholder="Enter your Email"
-        required
-    >
+    <input type="email" id="signupEmail"
+           placeholder="Enter your Email">
 
-    <div id="signupEmailError" class="error"></div>
+    <input type="password" id="signupPassword"
+           placeholder="Enter your Password">
 
-    <input
-        type="password"
-        id="signupPassword"
-        placeholder="Enter your Password"
-        required
-    >
+    <input type="password" id="signupRePassword"
+           placeholder="Re-enter Password">
 
-    <div id="signupPasswordError" class="error"></div>
+    <button id="signupButton" onclick="validateSignup()">Sign Up</button>
 
-    <input
-        type="password"
-        id="signupRePassword"
-        placeholder="Re-enter Password"
-        required
-    >
-
-    <div id="signupRePasswordError" class="error"></div>
-
-    <button id="signupButton" onclick="validateSignup()">
-        Sign Up
-    </button>
-
-    <p>
-        Already have an account?
-        <a href="#" onclick="showLogin(); return false;">Login</a>
+    <p>Already have an account?
+       <a href="#" onclick="showLogin(); return false;">Login</a>
     </p>
-
 </div>
 
-
 <script>
-
-// BACKEND URL
 const API_URL = "https://housepriceestimator-qhgh.onrender.com";
 
-// LIVE FRONTEND URL
-const HOME_URL = "https://pappurulalitha.github.io/HousePriceEstimator/index.html";
+const HOME_URL =
+"https://pappurulalitha.github.io/HousePriceEstimator/index.html";
 
-
-// Background slideshow
 const backgrounds = [
     "url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2')",
     "url('https://images.unsplash.com/photo-1570129477492-45c003edd2be')",
@@ -206,59 +127,44 @@ function changeBackground() {
 changeBackground();
 setInterval(changeBackground, 5000);
 
-
-// Show signup
 function showSignup() {
     document.getElementById("loginPage").style.display = "none";
     document.getElementById("signupPage").style.display = "block";
+    clearMessages();
 }
 
-
-// Show login
 function showLogin() {
     document.getElementById("signupPage").style.display = "none";
     document.getElementById("loginPage").style.display = "block";
+    clearMessages();
 }
 
-
-// Clear signup errors
-function clearSignupErrors() {
-    document.getElementById("signupEmailError").textContent = "";
-    document.getElementById("signupPasswordError").textContent = "";
-    document.getElementById("signupRePasswordError").textContent = "";
+function clearMessages() {
+    document.getElementById("loginMessage").textContent = "";
     document.getElementById("signupMessage").textContent = "";
 }
 
-
-// Clear login errors
-function clearLoginErrors() {
-    document.getElementById("loginEmailError").textContent = "";
-    document.getElementById("loginPasswordError").textContent = "";
-    document.getElementById("loginMessage").textContent = "";
-}
-
-
-// SIGNUP FUNCTION
 async function validateSignup() {
-
-    clearSignupErrors();
-
     const email = document.getElementById("signupEmail").value.trim();
-    const pass = document.getElementById("signupPassword").value.trim();
-    const repass = document.getElementById("signupRePassword").value.trim();
+    const password = document.getElementById("signupPassword").value.trim();
+    const confirmPassword =
+        document.getElementById("signupRePassword").value.trim();
 
+    const message = document.getElementById("signupMessage");
     const button = document.getElementById("signupButton");
 
-    if (!email || !pass || !repass) {
-        document.getElementById("signupMessage").className = "error";
-        document.getElementById("signupMessage").textContent =
-            "Please fill in all fields.";
+    message.className = "";
+    message.textContent = "";
+
+    if (!email || !password || !confirmPassword) {
+        message.className = "error";
+        message.textContent = "Please fill in all fields.";
         return;
     }
 
-    if (pass !== repass) {
-        document.getElementById("signupRePasswordError").textContent =
-            "Passwords do not match.";
+    if (password !== confirmPassword) {
+        message.className = "error";
+        message.textContent = "Passwords do not match.";
         return;
     }
 
@@ -266,16 +172,10 @@ async function validateSignup() {
     button.textContent = "Signing Up...";
 
     try {
-
         const response = await fetch(`${API_URL}/signup`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                email: email,
-                password: pass
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
         });
 
         const data = await response.json();
@@ -284,53 +184,39 @@ async function validateSignup() {
             throw new Error(data.error || "Signup failed.");
         }
 
-        document.getElementById("signupMessage").className = "success";
-        document.getElementById("signupMessage").textContent =
-            "Signup successful! Please login.";
+        message.className = "success";
+        message.textContent = "Signup successful! Please login.";
 
-        document.getElementById("signupEmail").value = "";
         document.getElementById("signupPassword").value = "";
         document.getElementById("signupRePassword").value = "";
 
         setTimeout(() => {
             showLogin();
             document.getElementById("loginEmail").value = email;
-            document.getElementById("loginMessage").className = "success";
-            document.getElementById("loginMessage").textContent =
-                "Please login with your details.";
         }, 1200);
 
     } catch (error) {
-
-        console.error("Signup Error:", error);
-
-        document.getElementById("signupMessage").className = "error";
-        document.getElementById("signupMessage").textContent =
-            error.message || "Unable to connect to server.";
-
+        message.className = "error";
+        message.textContent = error.message;
     } finally {
-
         button.disabled = false;
         button.textContent = "Sign Up";
-
     }
 }
 
-
-// LOGIN FUNCTION
 async function validateLogin() {
-
-    clearLoginErrors();
-
     const email = document.getElementById("loginEmail").value.trim();
-    const pass = document.getElementById("loginPassword").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
 
+    const message = document.getElementById("loginMessage");
     const button = document.getElementById("loginButton");
 
-    if (!email || !pass) {
-        document.getElementById("loginMessage").className = "error";
-        document.getElementById("loginMessage").textContent =
-            "Please enter email and password.";
+    message.className = "";
+    message.textContent = "";
+
+    if (!email || !password) {
+        message.className = "error";
+        message.textContent = "Please enter email and password.";
         return;
     }
 
@@ -338,16 +224,10 @@ async function validateLogin() {
     button.textContent = "Logging In...";
 
     try {
-
         const response = await fetch(`${API_URL}/login`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                email: email,
-                password: pass
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
         });
 
         const data = await response.json();
@@ -356,27 +236,18 @@ async function validateLogin() {
             throw new Error(data.error || "Login failed.");
         }
 
-        // Save email
         localStorage.setItem("userEmail", data.email || email);
 
-        // Redirect directly to live index.html
-        window.location.replace(HOME_URL);
+        // Open the actual estimator page
+        window.location.assign(HOME_URL);
 
     } catch (error) {
-
-        console.error("Login Error:", error);
-
-        document.getElementById("loginMessage").className = "error";
-        document.getElementById("loginMessage").textContent =
-            error.message || "Unable to connect to server.";
-
+        message.className = "error";
+        message.textContent = error.message;
         button.disabled = false;
         button.textContent = "Login";
-
     }
-
 }
-
 </script>
 
 </body>

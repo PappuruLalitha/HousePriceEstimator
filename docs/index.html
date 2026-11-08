@@ -4,386 +4,230 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>House Portal</title>
+<title>House Price Estimator</title>
 
 <style>
-    * {
-        box-sizing: border-box;
-    }
+* { box-sizing: border-box; }
 
-    body {
-        margin: 0;
-        padding: 0;
-        font-family: Arial, sans-serif;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        transition: background-image 1s ease-in-out;
-    }
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    background: url("https://images.unsplash.com/photo-1600607687939-ce8a6c25118c")
+                center/cover fixed;
+    padding: 30px 15px;
+}
 
-    .form-box {
-        background: rgba(255, 255, 255, 0.9);
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 0 20px rgba(0,0,0,0.2);
-        width: 90%;
-        max-width: 380px;
-        text-align: center;
-    }
+.container {
+    max-width: 650px;
+    margin: auto;
+    padding: 30px;
+    background: rgba(255,255,255,0.93);
+    border-radius: 15px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+}
 
-    .form-box h2 {
-        margin-bottom: 20px;
-    }
+h1 {
+    text-align: center;
+    color: #174a75;
+}
 
-    input {
-        width: 100%;
-        padding: 12px;
-        margin: 10px 0;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-    }
+label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+}
 
-    button {
-        background-color: #007BFF;
-        color: white;
-        padding: 12px;
-        border: none;
-        width: 100%;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-top: 10px;
-        font-size: 16px;
-    }
+input, select {
+    width: 100%;
+    padding: 12px;
+    margin-top: 7px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
 
-    button:hover {
-        background-color: #0056b3;
-    }
+button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 22px;
+    border: none;
+    border-radius: 6px;
+    background: #007BFF;
+    color: white;
+    font-size: 17px;
+    cursor: pointer;
+}
 
-    button:disabled {
-        background-color: #999;
-        cursor: not-allowed;
-    }
+button:hover { background: #0056b3; }
 
-    .error {
-        color: red;
-        font-size: 14px;
-        margin-top: 5px;
-    }
+button:disabled {
+    background: #888;
+    cursor: wait;
+}
 
-    .success {
-        color: green;
-        font-size: 14px;
-        margin-top: 5px;
-    }
+#message {
+    margin-top: 15px;
+    text-align: center;
+    color: red;
+}
 
-    a {
-        color: #007BFF;
-        text-decoration: none;
-    }
-
-    a:hover {
-        text-decoration: underline;
-    }
-
-    #signupPage {
-        display: none;
-    }
+.user {
+    text-align: right;
+    color: #174a75;
+    overflow-wrap: anywhere;
+}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN PAGE -->
-<div class="form-box" id="loginPage">
+<div class="container">
 
-    <h2>House Portal Login</h2>
+    <p class="user" id="userEmail"></p>
 
-    <div id="loginMessage"></div>
+    <h1>House Price Estimator</h1>
+    <p>Enter your house details to calculate the estimated cost.</p>
 
-    <input
-        type="email"
-        id="loginEmail"
-        placeholder="Enter your Email"
-        required
-    >
+    <form id="estimateForm">
 
-    <div id="loginEmailError" class="error"></div>
+        <label>Land Size (in cents)</label>
+        <input type="number" id="landSize" min="0.1"
+               step="0.1" required>
 
-    <input
-        type="password"
-        id="loginPassword"
-        placeholder="Enter your Password"
-        required
-    >
+        <label>Number of Floors</label>
+        <input type="number" id="numFloors" min="1"
+               step="1" required>
 
-    <div id="loginPasswordError" class="error"></div>
+        <label>Number of Bedrooms</label>
+        <input type="number" id="bedrooms" min="0"
+               step="1" required>
 
-    <button id="loginButton" onclick="validateLogin()">
-        Login
-    </button>
+        <label>Number of Kitchens</label>
+        <input type="number" id="kitchens" min="0"
+               step="1" required>
 
-    <p>
-        Don't have an account?
-        <a href="#" onclick="showSignup(); return false;">Sign up</a>
-    </p>
+        <label>Number of Bathrooms</label>
+        <input type="number" id="bathrooms" min="0"
+               step="1" required>
 
-</div>
+        <label>Elevation</label>
+        <select id="elevation" required>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+        </select>
 
+        <label>Building Materials</label>
+        <select id="materials" required>
+            <option value="Standard">Standard</option>
+            <option value="Premium">Premium</option>
+        </select>
 
-<!-- SIGNUP PAGE -->
-<div class="form-box" id="signupPage">
+        <button type="submit" id="calculateButton">
+            Calculate House Price
+        </button>
 
-    <h2>Create Account</h2>
+    </form>
 
-    <div id="signupMessage"></div>
-
-    <input
-        type="email"
-        id="signupEmail"
-        placeholder="Enter your Email"
-        required
-    >
-
-    <div id="signupEmailError" class="error"></div>
-
-    <input
-        type="password"
-        id="signupPassword"
-        placeholder="Enter your Password"
-        required
-    >
-
-    <div id="signupPasswordError" class="error"></div>
-
-    <input
-        type="password"
-        id="signupRePassword"
-        placeholder="Re-enter Password"
-        required
-    >
-
-    <div id="signupRePasswordError" class="error"></div>
-
-    <button id="signupButton" onclick="validateSignup()">
-        Sign Up
-    </button>
-
-    <p>
-        Already have an account?
-        <a href="#" onclick="showLogin(); return false;">Login</a>
-    </p>
+    <div id="message"></div>
 
 </div>
-
 
 <script>
-
-// RENDER BACKEND URL
 const API_URL = "https://housepriceestimator-qhgh.onrender.com";
 
+const userEmail = localStorage.getItem("userEmail");
 
-// Background slideshow
-const backgrounds = [
-    "url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2')",
-    "url('https://images.unsplash.com/photo-1570129477492-45c003edd2be')",
-    "url('https://cdn-2.reimaginehome.ai/dev/media/Exterior-Sample-bdefaaf7-3f9c-415b-8e70-eb448b0d85ea.jpeg')"
-];
+document.getElementById("userEmail").textContent =
+    userEmail ? "Welcome: " + userEmail : "House Price Estimator";
 
-let bgIndex = 0;
+// If login is mandatory, uncomment these lines:
+// if (!userEmail) {
+//     window.location.replace("./LoginPage.html");
+// }
 
-function changeBackground() {
-    document.body.style.backgroundImage = backgrounds[bgIndex];
-    bgIndex = (bgIndex + 1) % backgrounds.length;
-}
+document.getElementById("estimateForm").addEventListener("submit",
+async function(event) {
 
-changeBackground();
-setInterval(changeBackground, 5000);
+    event.preventDefault();
 
+    const button = document.getElementById("calculateButton");
+    const message = document.getElementById("message");
 
-// Show Signup Page
-function showSignup() {
+    message.textContent = "";
 
-    document.getElementById("loginPage").style.display = "none";
-    document.getElementById("signupPage").style.display = "block";
+    const landSize = Number(document.getElementById("landSize").value);
+    const numFloors = Number(document.getElementById("numFloors").value);
+    const bedrooms = Number(document.getElementById("bedrooms").value);
+    const kitchens = Number(document.getElementById("kitchens").value);
+    const bathrooms = Number(document.getElementById("bathrooms").value);
+    const elevation = document.getElementById("elevation").value;
+    const materials = document.getElementById("materials").value;
 
-}
-
-
-// Show Login Page
-function showLogin() {
-
-    document.getElementById("signupPage").style.display = "none";
-    document.getElementById("loginPage").style.display = "block";
-
-}
-
-
-// Clear messages
-function clearSignupErrors() {
-
-    document.getElementById("signupEmailError").textContent = "";
-    document.getElementById("signupPasswordError").textContent = "";
-    document.getElementById("signupRePasswordError").textContent = "";
-    document.getElementById("signupMessage").textContent = "";
-
-}
-
-function clearLoginErrors() {
-
-    document.getElementById("loginEmailError").textContent = "";
-    document.getElementById("loginPasswordError").textContent = "";
-    document.getElementById("loginMessage").textContent = "";
-
-}
-
-
-// SIGNUP FUNCTION
-async function validateSignup() {
-
-    clearSignupErrors();
-
-    const email = document.getElementById("signupEmail").value.trim();
-    const pass = document.getElementById("signupPassword").value.trim();
-    const repass = document.getElementById("signupRePassword").value.trim();
-
-    const button = document.getElementById("signupButton");
-
-    if (!email || !pass || !repass) {
-        document.getElementById("signupMessage").textContent =
-            "Please fill in all fields.";
+    if (
+        landSize <= 0 || numFloors < 1 ||
+        bedrooms < 0 || kitchens < 0 || bathrooms < 0
+    ) {
+        message.textContent = "Please enter valid house details.";
         return;
     }
 
-    if (pass !== repass) {
-        document.getElementById("signupRePasswordError").textContent =
-            "Passwords do not match.";
-        return;
-    }
+    const requestData = {
+        landSize,
+        numFloors,
+        bedrooms,
+        kitchens,
+        bathrooms,
+        elevation,
+        materials,
+        userEmail: userEmail || ""
+    };
 
     button.disabled = true;
-    button.textContent = "Signing Up...";
+    button.textContent = "Calculating...";
+    message.textContent = "Please wait. Connecting to server...";
 
     try {
-
-        const response = await fetch(`${API_URL}/signup`, {
+        const response = await fetch(`${API_URL}/calculate`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                email: email,
-                password: pass
-            })
+            body: JSON.stringify(requestData)
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.error || "Signup failed.");
+            throw new Error(data.error || "Calculation failed.");
         }
 
-        document.getElementById("signupMessage").className = "success";
-        document.getElementById("signupMessage").textContent =
-            "Signup successful! Please login.";
+        // Read the total from the backend response.
+        const estimatedPrice =
+            data.estimatedPrice ??
+            data.totalCost ??
+            data.estimatedCost ??
+            data.total ??
+            data.price;
 
-        document.getElementById("signupEmail").value = "";
-        document.getElementById("signupPassword").value = "";
-        document.getElementById("signupRePassword").value = "";
-
-        setTimeout(() => {
-            showLogin();
-            document.getElementById("loginEmail").value = email;
-            document.getElementById("loginMessage").textContent =
-                "Please login with your details.";
-            document.getElementById("loginMessage").className = "success";
-        }, 1200);
-
-    } catch (error) {
-
-        console.error("Signup Error:", error);
-
-        document.getElementById("signupMessage").className = "error";
-        document.getElementById("signupMessage").textContent =
-            error.message || "Unable to connect to server.";
-
-    } finally {
-
-        button.disabled = false;
-        button.textContent = "Sign Up";
-
-    }
-
-}
-
-
-// LOGIN FUNCTION
-async function validateLogin() {
-
-    clearLoginErrors();
-
-    const email = document.getElementById("loginEmail").value.trim();
-    const pass = document.getElementById("loginPassword").value.trim();
-
-    const button = document.getElementById("loginButton");
-
-    if (!email || !pass) {
-        document.getElementById("loginMessage").textContent =
-            "Please enter email and password.";
-        document.getElementById("loginMessage").className = "error";
-        return;
-    }
-
-    button.disabled = true;
-    button.textContent = "Logging In...";
-
-    try {
-
-        const response = await fetch(`${API_URL}/login`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                email: email,
-                password: pass
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || "Login failed.");
+        if (estimatedPrice === undefined || !Number.isFinite(Number(estimatedPrice))) {
+            throw new Error(
+                "The backend response did not contain a recognised price field. Check the /calculate response."
+            );
         }
 
-        // Save logged-in user's email
-        localStorage.setItem("userEmail", data.email || email);
+        localStorage.setItem("estimatedPrice", estimatedPrice);
 
-        alert("Login successful!");
-
-        // Open house price estimator
-        window.location.href = "./index.html";
+        window.location.assign("./result.html");
 
     } catch (error) {
-
-        console.error("Login Error:", error);
-
-        document.getElementById("loginMessage").className = "error";
-        document.getElementById("loginMessage").textContent =
-            error.message || "Unable to connect to server.";
-
+        console.error("Calculation error:", error);
+        message.textContent =
+            error.message || "Unable to connect to the backend.";
     } finally {
-
         button.disabled = false;
-        button.textContent = "Login";
-
+        button.textContent = "Calculate House Price";
     }
-
-}
-
+});
 </script>
 
 </body>
