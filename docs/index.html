@@ -1,165 +1,390 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>House Price Estimator</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>House Portal</title>
 
-        /* Background Slideshow */
-        .slideshow { position: fixed; width: 100%; height: 100%; z-index: -1; top: 0; left: 0; }
-        .slide { 
-            position: absolute; 
-            width: 100%; 
-            height: 100%; 
-            background-size: cover; 
-            background-position: center; 
-            opacity: 0; 
-            transition: opacity 1s ease-in-out; 
-        }
-        .slide.active { opacity: 1; z-index: 1; }
+<style>
+    * {
+        box-sizing: border-box;
+    }
 
-        /* Form and Result */
-        .main-content { position: relative; z-index: 2; padding: 2rem; min-height: 100vh; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-        .form-container, .result-container {
-            width: 90%; max-width: 500px; padding: 2rem; background: rgba(255, 255, 255, 0.7);
-            border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); margin-top: 2rem;
-        }
-        .result-container { text-align: center; display: none; }
-        h1 { text-align: center; margin-bottom: 1.5rem; font-size: 1.8rem; color: #333; }
-        label { display: block; margin: 0.8rem 0 0.3rem; color: #333; font-weight: bold; }
-        input[type="number"], input[type="text"], input[type="file"] {
-            width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 0.5rem;
-        }
-        .btn { display: block; width: 100%; margin-top: 1.5rem; padding: 10px; background: #007bff; color: white;
-            border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; }
-        .btn:hover { background-color: #0056b3; }
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        transition: background-image 1s ease-in-out;
+    }
 
-        /* Material buttons */
-        .material-btns { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 10px; }
-        .material-btn {
-            flex: 1 1 30%; padding: 10px; background: #28a745; color: white; border: none;
-            border-radius: 6px; cursor: pointer; font-size: 14px; text-align: center;
-        }
-        .material-btn.selected { background: #155d27; }
-        #price-output { font-size: 2.5rem; font-weight: bold; color: #007bff; margin-top: 1.5rem; }
-    </style>
+    .form-box {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        width: 90%;
+        max-width: 380px;
+        text-align: center;
+    }
+
+    .form-box h2 {
+        margin-bottom: 20px;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+
+    button {
+        background-color: #007BFF;
+        color: white;
+        padding: 12px;
+        border: none;
+        width: 100%;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+        font-size: 16px;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    button:disabled {
+        background-color: #999;
+        cursor: not-allowed;
+    }
+
+    .error {
+        color: red;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+
+    .success {
+        color: green;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+
+    a {
+        color: #007BFF;
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    #signupPage {
+        display: none;
+    }
+</style>
 </head>
+
 <body>
 
-<!-- Background Slideshow -->
-<div class="slideshow">
-    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c');"></div>
-    <div class="slide" style="background-image: url('https://t4.ftcdn.net/jpg/15/32/91/27/360_F_1532912757_TXavvamqWDdKF4534vxdKtlwEmW2hPzP.jpg');"></div>
-    <div class="slide" style="background-image: url('https://d2fryjlmubyuuh.cloudfront.net/wp-content/uploads/2024/07/07192037/AI-kate-middleton-bathroom-jpg.webp');"></div>
-    <div class="slide" style="background-image: url('https://bonito.in/wp-content/uploads/2021/11/Blog-Detail-02-1.jpg');"></div>
-    <div class="slide" style="background-image: url('https://www.orangetree.in/cdn/shop/articles/Living-and-dining_1_1_1100x_08a44e99-1855-4516-ab82-86bbc86b74a3.jpg?v=1722849622');"></div>
+<!-- LOGIN PAGE -->
+<div class="form-box" id="loginPage">
+
+    <h2>House Portal Login</h2>
+
+    <div id="loginMessage"></div>
+
+    <input
+        type="email"
+        id="loginEmail"
+        placeholder="Enter your Email"
+        required
+    >
+
+    <div id="loginEmailError" class="error"></div>
+
+    <input
+        type="password"
+        id="loginPassword"
+        placeholder="Enter your Password"
+        required
+    >
+
+    <div id="loginPasswordError" class="error"></div>
+
+    <button id="loginButton" onclick="validateLogin()">
+        Login
+    </button>
+
+    <p>
+        Don't have an account?
+        <a href="#" onclick="showSignup(); return false;">Sign up</a>
+    </p>
+
 </div>
 
-<!-- Main Content -->
-<div class="main-content">
-    <div class="form-container">
-        <h1> House Price Estimator</h1>
-        <form id="price-form">
 
-            <label>Land Size (in cents):</label>
-            <input type="number" name="land_size" placeholder="e.g., 5" required />
+<!-- SIGNUP PAGE -->
+<div class="form-box" id="signupPage">
 
-            <label>Number of Floors:</label>
-            <input type="number" name="num_floors" placeholder="e.g., 2" required />
+    <h2>Create Account</h2>
 
-            <label>Bedrooms per Floor:</label>
-            <input type="number" name="bedrooms" placeholder="e.g., 2" required />
+    <div id="signupMessage"></div>
 
-            <label>Kitchen :</label>
-            <input type="number" name="kitchens" placeholder="e.g., 1" required />
+    <input
+        type="email"
+        id="signupEmail"
+        placeholder="Enter your Email"
+        required
+    >
 
-            <label>Bathrooms per Floor:</label>
-            <input type="number" name="bathrooms" placeholder="e.g., 2" required />
+    <div id="signupEmailError" class="error"></div>
 
-            <label>Select Materials:</label>
-            <div class="material-btns">
-                <button type="button" class="material-btn" data-name="Bricks">Bricks</button>
-                <button type="button" class="material-btn" data-name="Cement">Cement</button>
-                <button type="button" class="material-btn" data-name="Sand">Sand</button>
-            </div>
+    <input
+        type="password"
+        id="signupPassword"
+        placeholder="Enter your Password"
+        required
+    >
 
-            <div class="checkbox-group">
-                <input type="checkbox" id="elevation" name="elevation" value="true" />
-                <label for="elevation">Include Elevation Cost (₹1,00,000)</label>
-            </div>
+    <div id="signupPasswordError" class="error"></div>
 
-            <button type="submit" class="btn">Estimate Price</button>
-        </form>
-    </div>
+    <input
+        type="password"
+        id="signupRePassword"
+        placeholder="Re-enter Password"
+        required
+    >
 
-    <div class="result-container" id="result-container">
-        <h2>Estimated Price</h2>
-        <p>Based on your specifications, the estimated cost is:</p>
-        <div id="price-output"></div>
-    </div>
+    <div id="signupRePasswordError" class="error"></div>
+
+    <button id="signupButton" onclick="validateSignup()">
+        Sign Up
+    </button>
+
+    <p>
+        Already have an account?
+        <a href="#" onclick="showLogin(); return false;">Login</a>
+    </p>
+
 </div>
+
 
 <script>
-// Toggle material buttons
-document.querySelectorAll(".material-btn").forEach(btn => {
-  btn.addEventListener("click", () => btn.classList.toggle("selected"));
-});
 
-// Handle form submit
-const form = document.getElementById("price-form");
-const priceOut = document.getElementById("price-output");
-const resultWrap = document.getElementById("result-container");
+// RENDER BACKEND URL
+const API_URL = "https://housepriceestimator-qhgh.onrender.com";
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
 
-  const landSize   = parseFloat(form.land_size.value || "0");
-  const numFloors  = parseInt(form.num_floors.value || "1");
-  const bedrooms   = parseInt(form.bedrooms.value || "0");
-  const kitchens   = parseInt(form.kitchens.value || "0");
-  const bathrooms  = parseInt(form.bathrooms.value || "0");
-  const elevation  = document.getElementById("elevation").checked;
+// Background slideshow
+const backgrounds = [
+    "url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2')",
+    "url('https://images.unsplash.com/photo-1570129477492-45c003edd2be')",
+    "url('https://cdn-2.reimaginehome.ai/dev/media/Exterior-Sample-bdefaaf7-3f9c-415b-8e70-eb448b0d85ea.jpeg')"
+];
 
-  const materials = Array.from(document.querySelectorAll(".material-btn.selected"))
-    .map(b => b.dataset.name || b.innerText.trim());
+let bgIndex = 0;
 
-  const userEmail = localStorage.getItem("userEmail") || "";
-  try {
-    const res = await fetch("http://localhost:8081/calculate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        landSize, numFloors, bedrooms, kitchens, bathrooms, elevation, materials, userEmail
-      })
-    });
+function changeBackground() {
+    document.body.style.backgroundImage = backgrounds[bgIndex];
+    bgIndex = (bgIndex + 1) % backgrounds.length;
+}
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Server error");
-    localStorage.setItem("estimatedPrice", data.price);
-    window.location.href = "result.html";
-    priceOut.textContent = new Intl.NumberFormat('en-IN', {
-      style: 'currency', currency: 'INR', maximumFractionDigits: 0
-    }).format(data.price);
+changeBackground();
+setInterval(changeBackground, 5000);
 
-    resultWrap.style.display = 'block';
-  } catch (err) {
-    console.error(err);
-    priceOut.textContent = "Could not calculate. Check server & console.";
-    resultWrap.style.display = 'block';
-  }
-});
-const slides = document.querySelectorAll('.slide');
-let currentSlide = 0;
-setInterval(() => {
-    slides[currentSlide].classList.remove('active');
-    currentSlide = (currentSlide + 1) % slides.length;
-    slides[currentSlide].classList.add('active');
-}, 5000);
+
+// Show Signup Page
+function showSignup() {
+
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("signupPage").style.display = "block";
+
+}
+
+
+// Show Login Page
+function showLogin() {
+
+    document.getElementById("signupPage").style.display = "none";
+    document.getElementById("loginPage").style.display = "block";
+
+}
+
+
+// Clear messages
+function clearSignupErrors() {
+
+    document.getElementById("signupEmailError").textContent = "";
+    document.getElementById("signupPasswordError").textContent = "";
+    document.getElementById("signupRePasswordError").textContent = "";
+    document.getElementById("signupMessage").textContent = "";
+
+}
+
+function clearLoginErrors() {
+
+    document.getElementById("loginEmailError").textContent = "";
+    document.getElementById("loginPasswordError").textContent = "";
+    document.getElementById("loginMessage").textContent = "";
+
+}
+
+
+// SIGNUP FUNCTION
+async function validateSignup() {
+
+    clearSignupErrors();
+
+    const email = document.getElementById("signupEmail").value.trim();
+    const pass = document.getElementById("signupPassword").value.trim();
+    const repass = document.getElementById("signupRePassword").value.trim();
+
+    const button = document.getElementById("signupButton");
+
+    if (!email || !pass || !repass) {
+        document.getElementById("signupMessage").textContent =
+            "Please fill in all fields.";
+        return;
+    }
+
+    if (pass !== repass) {
+        document.getElementById("signupRePasswordError").textContent =
+            "Passwords do not match.";
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Signing Up...";
+
+    try {
+
+        const response = await fetch(`${API_URL}/signup`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email: email,
+                password: pass
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Signup failed.");
+        }
+
+        document.getElementById("signupMessage").className = "success";
+        document.getElementById("signupMessage").textContent =
+            "Signup successful! Please login.";
+
+        document.getElementById("signupEmail").value = "";
+        document.getElementById("signupPassword").value = "";
+        document.getElementById("signupRePassword").value = "";
+
+        setTimeout(() => {
+            showLogin();
+            document.getElementById("loginEmail").value = email;
+            document.getElementById("loginMessage").textContent =
+                "Please login with your details.";
+            document.getElementById("loginMessage").className = "success";
+        }, 1200);
+
+    } catch (error) {
+
+        console.error("Signup Error:", error);
+
+        document.getElementById("signupMessage").className = "error";
+        document.getElementById("signupMessage").textContent =
+            error.message || "Unable to connect to server.";
+
+    } finally {
+
+        button.disabled = false;
+        button.textContent = "Sign Up";
+
+    }
+
+}
+
+
+// LOGIN FUNCTION
+async function validateLogin() {
+
+    clearLoginErrors();
+
+    const email = document.getElementById("loginEmail").value.trim();
+    const pass = document.getElementById("loginPassword").value.trim();
+
+    const button = document.getElementById("loginButton");
+
+    if (!email || !pass) {
+        document.getElementById("loginMessage").textContent =
+            "Please enter email and password.";
+        document.getElementById("loginMessage").className = "error";
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Logging In...";
+
+    try {
+
+        const response = await fetch(`${API_URL}/login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email: email,
+                password: pass
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Login failed.");
+        }
+
+        // Save logged-in user's email
+        localStorage.setItem("userEmail", data.email || email);
+
+        alert("Login successful!");
+
+        // Open house price estimator
+        window.location.href = "index.html";
+
+    } catch (error) {
+
+        console.error("Login Error:", error);
+
+        document.getElementById("loginMessage").className = "error";
+        document.getElementById("loginMessage").textContent =
+            error.message || "Unable to connect to server.";
+
+    } finally {
+
+        button.disabled = false;
+        button.textContent = "Login";
+
+    }
+
+}
+
 </script>
-
 
 </body>
 </html>
