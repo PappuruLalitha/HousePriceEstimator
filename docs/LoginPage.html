@@ -4,94 +4,94 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>House Portal</title>
+<title>House Portal Login</title>
 
 <style>
-    * {
-        box-sizing: border-box;
-    }
+* {
+    box-sizing: border-box;
+}
 
-    body {
-        margin: 0;
-        padding: 0;
-        font-family: Arial, sans-serif;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        transition: background-image 1s ease-in-out;
-    }
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: background-image 1s ease-in-out;
+}
 
-    .form-box {
-        background: rgba(255, 255, 255, 0.9);
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 0 20px rgba(0,0,0,0.2);
-        width: 90%;
-        max-width: 380px;
-        text-align: center;
-    }
+.form-box {
+    background: rgba(255,255,255,0.9);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    width: 90%;
+    max-width: 380px;
+    text-align: center;
+}
 
-    .form-box h2 {
-        margin-bottom: 20px;
-    }
+.form-box h2 {
+    margin-bottom: 20px;
+}
 
-    input {
-        width: 100%;
-        padding: 12px;
-        margin: 10px 0;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-    }
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
 
-    button {
-        background-color: #007BFF;
-        color: white;
-        padding: 12px;
-        border: none;
-        width: 100%;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-top: 10px;
-        font-size: 16px;
-    }
+button {
+    background-color: #007BFF;
+    color: white;
+    padding: 12px;
+    border: none;
+    width: 100%;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 16px;
+}
 
-    button:hover {
-        background-color: #0056b3;
-    }
+button:hover {
+    background-color: #0056b3;
+}
 
-    button:disabled {
-        background-color: #999;
-        cursor: not-allowed;
-    }
+button:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+}
 
-    .error {
-        color: red;
-        font-size: 14px;
-        margin-top: 5px;
-    }
+.error {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
+}
 
-    .success {
-        color: green;
-        font-size: 14px;
-        margin-top: 5px;
-    }
+.success {
+    color: green;
+    font-size: 14px;
+    margin-top: 5px;
+}
 
-    a {
-        color: #007BFF;
-        text-decoration: none;
-    }
+a {
+    color: #007BFF;
+    text-decoration: none;
+}
 
-    a:hover {
-        text-decoration: underline;
-    }
+a:hover {
+    text-decoration: underline;
+}
 
-    #signupPage {
-        display: none;
-    }
+#signupPage {
+    display: none;
+}
 </style>
 </head>
 
@@ -104,13 +104,21 @@
 
     <div id="loginMessage"></div>
 
-    <input type="email" id="loginEmail"
-           placeholder="Enter your Email" required>
+    <input
+        type="email"
+        id="loginEmail"
+        placeholder="Enter your Email"
+        required
+    >
 
     <div id="loginEmailError" class="error"></div>
 
-    <input type="password" id="loginPassword"
-           placeholder="Enter your Password" required>
+    <input
+        type="password"
+        id="loginPassword"
+        placeholder="Enter your Password"
+        required
+    >
 
     <div id="loginPasswordError" class="error"></div>
 
@@ -125,6 +133,7 @@
 
 </div>
 
+
 <!-- SIGNUP PAGE -->
 <div class="form-box" id="signupPage">
 
@@ -132,18 +141,30 @@
 
     <div id="signupMessage"></div>
 
-    <input type="email" id="signupEmail"
-           placeholder="Enter your Email" required>
+    <input
+        type="email"
+        id="signupEmail"
+        placeholder="Enter your Email"
+        required
+    >
 
     <div id="signupEmailError" class="error"></div>
 
-    <input type="password" id="signupPassword"
-           placeholder="Enter your Password" required>
+    <input
+        type="password"
+        id="signupPassword"
+        placeholder="Enter your Password"
+        required
+    >
 
     <div id="signupPasswordError" class="error"></div>
 
-    <input type="password" id="signupRePassword"
-           placeholder="Re-enter Password" required>
+    <input
+        type="password"
+        id="signupRePassword"
+        placeholder="Re-enter Password"
+        required
+    >
 
     <div id="signupRePasswordError" class="error"></div>
 
@@ -158,13 +179,15 @@
 
 </div>
 
+
 <script>
 
-// RENDER BACKEND URL
+// BACKEND URL
 const API_URL = "https://housepriceestimator-qhgh.onrender.com";
 
-// GITHUB PAGES INDEX URL
-const HOME_URL = "https://pappurulalitha.github.io/HousePriceEstimator/";
+// LIVE FRONTEND URL
+const HOME_URL = "https://pappurulalitha.github.io/HousePriceEstimator/index.html";
+
 
 // Background slideshow
 const backgrounds = [
@@ -184,20 +207,21 @@ changeBackground();
 setInterval(changeBackground, 5000);
 
 
-// Show Signup Page
+// Show signup
 function showSignup() {
     document.getElementById("loginPage").style.display = "none";
     document.getElementById("signupPage").style.display = "block";
 }
 
-// Show Login Page
+
+// Show login
 function showLogin() {
     document.getElementById("signupPage").style.display = "none";
     document.getElementById("loginPage").style.display = "block";
 }
 
 
-// Clear messages
+// Clear signup errors
 function clearSignupErrors() {
     document.getElementById("signupEmailError").textContent = "";
     document.getElementById("signupPasswordError").textContent = "";
@@ -205,6 +229,8 @@ function clearSignupErrors() {
     document.getElementById("signupMessage").textContent = "";
 }
 
+
+// Clear login errors
 function clearLoginErrors() {
     document.getElementById("loginEmailError").textContent = "";
     document.getElementById("loginPasswordError").textContent = "";
@@ -330,11 +356,11 @@ async function validateLogin() {
             throw new Error(data.error || "Login failed.");
         }
 
-        // Save user's email
+        // Save email
         localStorage.setItem("userEmail", data.email || email);
 
-        // Redirect to the live GitHub Pages home page
-        window.location.assign(HOME_URL);
+        // Redirect directly to live index.html
+        window.location.replace(HOME_URL);
 
     } catch (error) {
 
@@ -344,12 +370,11 @@ async function validateLogin() {
         document.getElementById("loginMessage").textContent =
             error.message || "Unable to connect to server.";
 
-    } finally {
-
         button.disabled = false;
         button.textContent = "Login";
 
     }
+
 }
 
 </script>
