@@ -1,240 +1,361 @@
+
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.Headers;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.ArrayList;
-import java.util.List;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 public class CostCalculatorServer {
 
-    // Normal “market” rates
-    private static final double BASE_RATE_GROUND = 1200; // ₹/sqft ground
-    private static final double BASE_RATE_UPPER  = 1500; // ₹/sqft upper floors
-    private static final double BRICK_RATE  = 6;          // ₹/brick
-    private static final double CEMENT_RATE = 400;        // ₹/bag
-    private static final double SAND_RATE   = 4000;       // ₹/truck
+    // Construction rates
+    private static final double BASE_RATE_GROUND = 1200;
+    private static final double BASE_RATE_UPPER = 1500;
+
+    // Material rates
+    private static final double BRICK_RATE = 6;
+    private static final double CEMENT_RATE = 400;
+    private static final double SAND_RATE = 4000;
 
     public static void main(String[] args) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8081), 0);
 
-        // Endpoints
-        server.createContext("/calculate", CostCalculatorServer::handleCalculate);
-        server.createContext("/signup",    CostCalculatorServer::handleSignup);
-        server.createContext("/login",     CostCalculatorServer::handleLogin);
+        // Read cloud hosting port, or use 8081 locally
+        int port = Integer.parseInt(
+            System.getenv().getOrDefault("PORT", "8081")
+        );
 
-        System.out.println("Server started at http://localhost:8081");
+        // Listen on all network interfaces
+        HttpServer server = HttpServer.create(
+            new InetSocketAddress("0.0.0.0", port), 0
+        );
+
+        // API endpoints
+        server.createContext("/calculate",
+            CostCalculatorServer::handleCalculate);
+
+        server.createContext("/signup",
+            CostCalculatorServer::handleSignup);
+
+        server.createContext("/login",
+            CostCalculatorServer::handleLogin);
+
         server.setExecutor(null);
         server.start();
+
+        System.out.println("House Price Estimator server started on port " + port);
     }
 
-    private static void handleSignup(HttpExchange ex) throws IOException {
-        // CORS
-        Headers h = ex.getResponseHeaders();
-        h.add("Access-Control-Allow-Origin", "*");
-        h.add("Access-Control-Allow-Methods", "POST, OPTIONS");
-        h.add("Access-Control-Allow-Headers", "Content-Type");
+    // Common CORS configuration
+    private static void setCors(HttpExchange ex) {
+
+        Headers headers = ex.getResponseHeaders();
+
+        headers.set("Access-Control-Allow-Origin", "*");
+        headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+        headers.set("Access-Control-Allow-Headers", "Content-Type");
+        headers.set("Content-Type", "application/json");
+    }
+
+    // Handle OPTIONS requests
+    private static boolean handleOptions(HttpExchange ex)
+            throws IOException {
 
         if ("OPTIONS".equalsIgnoreCase(ex.getRequestMethod())) {
             ex.sendResponseHeaders(204, -1);
-            return;
+            return true;
         }
 
+        return false;
+    }
+
+    // Send JSON response
+    private static void sendJson(
+            HttpExchange ex, int status, String json)
+            throws IOException {
+
+        byte[] response = json.getBytes(StandardCharsets.UTF_8);
+
+        ex.sendResponseHeaders(status, response.length);
+
+        try (OutputStream os = ex.getResponseBody()) {
+            os.write(response);
+        }
+    }
+
+    // Signup API
+    private static void handleSignup(HttpExchange ex)
+            throws IOException {
+
+        setCors(ex);
+
+        if (handleOptions(ex)) return;
+
         if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
-            ex.sendResponseHeaders(405, -1);
+            sendJson(ex, 405, "{\"error\":\"Method not allowed\"}");
             return;
         }
 
         try {
-            InputStream in = ex.getRequestBody();
-            String body = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            String body = readRequest(ex);
+
             String email = getString(body, "email", "");
             String password = getString(body, "password", "");
 
             if (email.isEmpty() || password.isEmpty()) {
-                String err = "{\"error\":\"Email and password required\"}";
-                byte[] out = err.getBytes(StandardCharsets.UTF_8);
-                h.add("Content-Type", "application/json");
-                ex.sendResponseHeaders(400, out.length);
-                try (OutputStream os = ex.getResponseBody()) { os.write(out); }
+                sendJson(ex, 400,
+                    "{\"error\":\"Email and password required\"}");
                 return;
             }
 
-            String json = "{\"success\":true,\"message\":\"Signup successful\"}";
-            byte[] out = json.getBytes(StandardCharsets.UTF_8);
-            h.add("Content-Type", "application/json");
-            ex.sendResponseHeaders(200, out.length);
-            try (OutputStream os = ex.getResponseBody()) { os.write(out); }
+            sendJson(ex, 200,
+                "{\"success\":true,\"message\":\"Signup successful\"}");
+
         } catch (Exception e) {
-            String err = "{\"error\":\"" + e.getMessage().replace("\"","'") + "\"}";
-            byte[] out = err.getBytes(StandardCharsets.UTF_8);
-            h.add("Content-Type", "application/json");
-            ex.sendResponseHeaders(400, out.length);
-            try (OutputStream os = ex.getResponseBody()) { os.write(out); }
+            sendJson(ex, 400,
+                "{\"error\":\"Signup failed\"}");
         }
     }
 
-    private static void handleLogin(HttpExchange ex) throws IOException {
-        // CORS
-        Headers h = ex.getResponseHeaders();
-        h.add("Access-Control-Allow-Origin", "*");
-        h.add("Access-Control-Allow-Methods", "POST, OPTIONS");
-        h.add("Access-Control-Allow-Headers", "Content-Type");
+    // Login API
+    private static void handleLogin(HttpExchange ex)
+            throws IOException {
 
-        if ("OPTIONS".equalsIgnoreCase(ex.getRequestMethod())) {
-            ex.sendResponseHeaders(204, -1);
-            return;
-        }
+        setCors(ex);
+
+        if (handleOptions(ex)) return;
 
         if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
-            ex.sendResponseHeaders(405, -1);
+            sendJson(ex, 405, "{\"error\":\"Method not allowed\"}");
             return;
         }
 
         try {
-            InputStream in = ex.getRequestBody();
-            String body = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            String body = readRequest(ex);
+
             String email = getString(body, "email", "");
             String password = getString(body, "password", "");
 
             if (email.isEmpty() || password.isEmpty()) {
-                String err = "{\"error\":\"Email and password required\"}";
-                byte[] out = err.getBytes(StandardCharsets.UTF_8);
-                h.add("Content-Type", "application/json");
-                ex.sendResponseHeaders(400, out.length);
-                try (OutputStream os = ex.getResponseBody()) { os.write(out); }
+                sendJson(ex, 400,
+                    "{\"error\":\"Email and password required\"}");
                 return;
             }
 
-            String json = "{\"success\":true,\"email\":\"" + email + "\",\"message\":\"Login successful\"}";
-            byte[] out = json.getBytes(StandardCharsets.UTF_8);
-            h.add("Content-Type", "application/json");
-            ex.sendResponseHeaders(200, out.length);
-            try (OutputStream os = ex.getResponseBody()) { os.write(out); }
+            // Demo response only; this does not authenticate stored users.
+            sendJson(ex, 200,
+                "{\"success\":true,\"email\":\""
+                + escapeJson(email)
+                + "\",\"message\":\"Login successful\"}");
+
         } catch (Exception e) {
-            String err = "{\"error\":\"" + e.getMessage().replace("\"","'") + "\"}";
-            byte[] out = err.getBytes(StandardCharsets.UTF_8);
-            h.add("Content-Type", "application/json");
-            ex.sendResponseHeaders(400, out.length);
-            try (OutputStream os = ex.getResponseBody()) { os.write(out); }
+            sendJson(ex, 400,
+                "{\"error\":\"Login failed\"}");
         }
     }
 
-    private static void handleCalculate(HttpExchange ex) throws IOException {
-        // CORS
-        Headers h = ex.getResponseHeaders();
-        h.add("Access-Control-Allow-Origin", "*");
-        h.add("Access-Control-Allow-Methods", "POST, OPTIONS");
-        h.add("Access-Control-Allow-Headers", "Content-Type");
+    // House price calculation API
+    private static void handleCalculate(HttpExchange ex)
+            throws IOException {
 
-        if ("OPTIONS".equalsIgnoreCase(ex.getRequestMethod())) {
-            ex.sendResponseHeaders(204, -1);
-            return;
-        }
+        setCors(ex);
+
+        if (handleOptions(ex)) return;
 
         if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
-            ex.sendResponseHeaders(405, -1);
+            sendJson(ex, 405, "{\"error\":\"Method not allowed\"}");
             return;
         }
 
-        // Read JSON body
-        InputStream in = ex.getRequestBody();
-        String body = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-
         try {
-            // ----- parse inputs from JSON (simple regex parsing) -----
-            double landSize = getDouble(body, "landSize", 0);     // in cents
-            int numFloors   = getInt(body, "numFloors", 1);
-            int bedrooms    = getInt(body, "bedrooms", 0);
-            int kitchens    = getInt(body, "kitchens", 0);
-            int bathrooms   = getInt(body, "bathrooms", 0);
+            String body = readRequest(ex);
+
+            // Read user inputs
+            double landSize = getDouble(body, "landSize", 0);
+            int numFloors = getInt(body, "numFloors", 1);
+            int bedrooms = getInt(body, "bedrooms", 0);
+            int kitchens = getInt(body, "kitchens", 0);
+            int bathrooms = getInt(body, "bathrooms", 0);
+
             boolean elevation = getBoolean(body, "elevation");
 
-            boolean useBricks = arrayContains(body, "materials", "Bricks");
-            boolean useCement = arrayContains(body, "materials", "Cement");
-            boolean useSand   = arrayContains(body, "materials", "Sand");
+            // Validate inputs
+            if (landSize <= 0 || numFloors <= 0
+                    || bedrooms < 0 || kitchens < 0
+                    || bathrooms < 0) {
 
-            // ----- calculation -----
-            double landAreaSqFt = landSize * 435.6; // 1 cent ≈ 435.6 sqft
+                sendJson(ex, 400,
+                    "{\"error\":\"Please enter valid house details\"}");
+                return;
+            }
 
+            // Selected materials
+            boolean useBricks =
+                arrayContains(body, "materials", "Bricks");
+
+            boolean useCement =
+                arrayContains(body, "materials", "Cement");
+
+            boolean useSand =
+                arrayContains(body, "materials", "Sand");
+
+            // Convert cents to square feet
+            double landAreaSqFt = landSize * 435.6;
+
+            // Calculate construction cost
             double baseCost = 0;
-            if (numFloors >= 1) baseCost += landAreaSqFt * BASE_RATE_GROUND;
-            if (numFloors > 1)  baseCost += (numFloors - 1) * landAreaSqFt * BASE_RATE_UPPER;
 
-            // (optional) tiny addons for room counts – feel free to tweak or remove
-            baseCost += bedrooms * 25000 + kitchens * 40000 + bathrooms * 30000;
+            baseCost += landAreaSqFt * BASE_RATE_GROUND;
 
+            if (numFloors > 1) {
+                baseCost += (numFloors - 1)
+                    * landAreaSqFt * BASE_RATE_UPPER;
+            }
+
+            // Room costs
+            baseCost += bedrooms * 25000;
+            baseCost += kitchens * 40000;
+            baseCost += bathrooms * 30000;
+
+            // Material costs
             double materialCost = 0;
+
             if (useBricks) {
-                double bricksQty = landSize * numFloors * 1000; // rough bricks estimate
+                double bricksQty = landSize * numFloors * 1000;
                 materialCost += bricksQty * BRICK_RATE;
             }
+
             if (useCement) {
-                double cementBags = numFloors * 200; // rough per-floor bags
+                double cementBags = numFloors * 200;
                 materialCost += cementBags * CEMENT_RATE;
             }
+
             if (useSand) {
-                double sandTrucks = numFloors * 3; // rough per-floor trucks
+                double sandTrucks = numFloors * 3;
                 materialCost += sandTrucks * SAND_RATE;
             }
 
+            // Optional elevation cost
             double elevationCost = elevation ? 100000 : 0;
 
-            double total = Math.round(baseCost + materialCost + elevationCost);
+            // Total estimated price
+            double total = Math.round(
+                baseCost + materialCost + elevationCost
+            );
 
+            // JSON response
             String json = "{"
-                    + "\"price\":" + (long) total + ","
-                    + "\"baseCost\":" + (long) Math.round(baseCost) + ","
-                    + "\"materialCost\":" + (long) Math.round(materialCost) + ","
-                    + "\"elevationCost\":" + (long) Math.round(elevationCost)
-                    + "}";
+                + "\"price\":" + (long) total + ","
+                + "\"baseCost\":" + Math.round(baseCost) + ","
+                + "\"materialCost\":" + Math.round(materialCost) + ","
+                + "\"elevationCost\":" + Math.round(elevationCost)
+                + "}";
 
-            byte[] out = json.getBytes(StandardCharsets.UTF_8);
-            h.add("Content-Type", "application/json");
-            ex.sendResponseHeaders(200, out.length);
-            try (OutputStream os = ex.getResponseBody()) { os.write(out); }
+            sendJson(ex, 200, json);
+
         } catch (Exception e) {
-            String err = "{\"error\":\"" + e.getMessage().replace("\"","'") + "\"}";
-            byte[] out = err.getBytes(StandardCharsets.UTF_8);
-            h.add("Content-Type", "application/json");
-            ex.sendResponseHeaders(400, out.length);
-            try (OutputStream os = ex.getResponseBody()) { os.write(out); }
+            e.printStackTrace();
+
+            sendJson(ex, 400,
+                "{\"error\":\"Unable to calculate house price\"}");
         }
     }
 
-    // ---------- tiny JSON helpers (regex-based; good enough for this demo) ----------
-    private static int getInt(String json, String key, int defVal) {
-        Matcher m = Pattern.compile("\"" + key + "\"\\s*:\\s*(-?\\d+)").matcher(json);
-        return m.find() ? Integer.parseInt(m.group(1)) : defVal;
+    // Read request body
+    private static String readRequest(HttpExchange ex)
+            throws IOException {
+
+        try (InputStream in = ex.getRequestBody()) {
+            return new String(
+                in.readAllBytes(), StandardCharsets.UTF_8
+            );
+        }
     }
-    private static double getDouble(String json, String key, double defVal) {
-        Matcher m = Pattern.compile("\"" + key + "\"\\s*:\\s*(-?\\d+(?:\\.\\d+)?)").matcher(json);
-        return m.find() ? Double.parseDouble(m.group(1)) : defVal;
+
+    // Extract integer
+    private static int getInt(
+            String json, String key, int defaultValue) {
+
+        Matcher m = Pattern.compile(
+            "\"" + Pattern.quote(key) + "\"\\s*:\\s*(-?\\d+)"
+        ).matcher(json);
+
+        return m.find()
+            ? Integer.parseInt(m.group(1))
+            : defaultValue;
     }
-    private static String getString(String json, String key, String defVal) {
-        Matcher m = Pattern.compile("\"" + key + "\"\\s*:\\s*\"([^\"]*?)\"").matcher(json);
-        return m.find() ? m.group(1) : defVal;
+
+    // Extract decimal number
+    private static double getDouble(
+            String json, String key, double defaultValue) {
+
+        Matcher m = Pattern.compile(
+            "\"" + Pattern.quote(key)
+            + "\"\\s*:\\s*(-?\\d+(?:\\.\\d+)?)"
+        ).matcher(json);
+
+        return m.find()
+            ? Double.parseDouble(m.group(1))
+            : defaultValue;
     }
-    private static boolean getBoolean(String json, String key) {
-        Matcher m = Pattern.compile("\"" + key + "\"\\s*:\\s*(true|false)").matcher(json);
+
+    // Extract string
+    private static String getString(
+            String json, String key, String defaultValue) {
+
+        Matcher m = Pattern.compile(
+            "\"" + Pattern.quote(key)
+            + "\"\\s*:\\s*\"([^\"]*)\""
+        ).matcher(json);
+
+        return m.find() ? m.group(1) : defaultValue;
+    }
+
+    // Extract boolean
+    private static boolean getBoolean(
+            String json, String key) {
+
+        Matcher m = Pattern.compile(
+            "\"" + Pattern.quote(key)
+            + "\"\\s*:\\s*(true|false)"
+        ).matcher(json);
+
         return m.find() && "true".equals(m.group(1));
     }
-    private static boolean arrayContains(String json, String arrayKey, String word) {
-        // Looks for: "materials":[ ... "Bricks" ... ]
-        Matcher m = Pattern.compile("\"" + arrayKey + "\"\\s*:\\s*\\[(.*?)\\]", Pattern.DOTALL).matcher(json);
+
+    // Check selected material
+    private static boolean arrayContains(
+            String json, String arrayKey, String word) {
+
+        Matcher m = Pattern.compile(
+            "\"" + Pattern.quote(arrayKey)
+            + "\"\\s*:\\s*\\[(.*?)\\]",
+            Pattern.DOTALL
+        ).matcher(json);
+
         if (m.find()) {
             String inside = m.group(1);
-            Pattern p = Pattern.compile("\"" + Pattern.quote(word) + "\"");
+
+            Pattern p = Pattern.compile(
+                "\"" + Pattern.quote(word) + "\""
+            );
+
             return p.matcher(inside).find();
         }
+
         return false;
+    }
+
+    // Escape special JSON characters
+    private static String escapeJson(String value) {
+        return value
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r");
     }
 }
